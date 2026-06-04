@@ -10,19 +10,28 @@ services:
       - "4317:4317" # OTLP over gRPC receiver
       - "4318:4318" # OTLP over HTTP receiver
       - "8888:8888" # Metrics endpoint
+    depends_on:
+      clickhouse:
+        condition: service_healthy
 
   clickhouse:
-    image: clickhouse/clickhouse-server:head
+    image: clickhouse/clickhouse-server:24.8
     container_name: clickhouse
     ports:
       - "9000:9000"
-      - "8143:8143"
+      - "8123:8123"
     ulimits:
       nofile:
         soft: 262144
         hard: 262144
     volumes:
       - ./clickhouse:/var/lib/clickhouse
+      - ./clickhouse-users.xml:/etc/clickhouse-server/users.d/network.xml
+    healthcheck:
+      test: ["CMD", "wget", "--spider", "-q", "localhost:8123/ping"]
+      interval: 5s
+      timeout: 3s
+      retries: 10
 
   grafana:
     image: grafana/grafana:9.4.3
@@ -34,13 +43,22 @@ services:
       - "3000:3000"
     environment:
       - GF_INSTALL_PLUGINS=grafana-clickhouse-datasource
+    depends_on:
+      clickhouse:
+        condition: service_healthy
 
   postgres:
-    image: postgres
+    image: postgres:16
     environment:
       POSTGRES_USER: postgres
       POSTGRES_PASSWORD: postgres
+      POSTGRES_DB: postgres
     ports:
       - "5432:5432"
     volumes:
       - ./pg:/var/lib/postgresql/data/
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres"]
+      interval: 5s
+      timeout: 3s
+      retries: 10

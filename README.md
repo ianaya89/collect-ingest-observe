@@ -41,7 +41,7 @@ A companion talk is included as [`slides.pdf`](./slides.pdf).
                                   ▼
                           ┌──────────────┐
                           │  ClickHouse  │
-                          │  :9000/:8143 │
+                          │  :9000/:8123 │
                           └──────┬───────┘
                                  │
                                  ▼
@@ -60,7 +60,7 @@ A companion talk is included as [`slides.pdf`](./slides.pdf).
 | orders     | Node.js                                      | 9997             | Order data service           |
 | postgres   | postgres                                     | 5432             | Application data store       |
 | otelcol    | otel/opentelemetry-collector-contrib:0.74.0  | 4317, 4318, 8888 | Receives and exports signals |
-| clickhouse | clickhouse/clickhouse-server:head            | 9000, 8143       | Telemetry storage            |
+| clickhouse | clickhouse/clickhouse-server:24.8            | 9000, 8123       | Telemetry storage            |
 | grafana    | grafana/grafana:9.4.3                        | 3000             | Dashboards                   |
 
 ---
@@ -83,7 +83,20 @@ npm install
 
 All service dependencies resolve from the root `node_modules`.
 
-### 2. Start infrastructure
+### 2. Set up environment files
+
+Copy the example files and adjust if needed (defaults work out of the box):
+
+```bash
+cp .env.example .env
+cp src/gateway/.env.example src/gateway/.env
+cp src/users/.env.example src/users/.env
+cp src/orders/.env.example src/orders/.env
+```
+
+`.env` files are git-ignored — only the `.env.example` templates are committed.
+
+### 3. Start infrastructure
 
 ```bash
 docker compose -f infra/docker-compose.yml up -d
@@ -91,7 +104,7 @@ docker compose -f infra/docker-compose.yml up -d
 
 Starts ClickHouse, the OTel Collector, Grafana, and Postgres.
 
-### 3. Seed the database
+### 4. Seed the database
 
 ```bash
 npm run seed
@@ -99,22 +112,27 @@ npm run seed
 
 Creates `users` and `orders` tables in Postgres and populates them with 10 users and 20 orders.
 
-### 4. Start the services
+### 5. Start the services
 
-Open three separate terminals:
+Start all three in the background with a single command (logs land in `.logs/<service>.log`):
 
 ```bash
-# Terminal 1 — gateway
-cd src/gateway && npm start
-
-# Terminal 2 — users
-cd src/users && npm start
-
-# Terminal 3 — orders
-cd src/orders && npm start
+make services
 ```
 
-### 5. Generate load
+Stop them with `make services-stop`.
+
+<details>
+<summary>Prefer separate terminals?</summary>
+
+```bash
+cd src/gateway && npm start   # terminal 1
+cd src/users && npm start     # terminal 2
+cd src/orders && npm start    # terminal 3
+```
+</details>
+
+### 6. Generate load
 
 ```bash
 make run
@@ -132,7 +150,7 @@ Stop load generation:
 make stop
 ```
 
-### 6. Open Grafana
+### 7. Open Grafana
 
 Navigate to [http://localhost:3000](http://localhost:3000).
 
@@ -194,7 +212,7 @@ collect-ingest-observe/
 │   └── index.js             # DB seeder (faker-generated users + orders)
 ├── Makefile                 # Load generation (make run / make stop)
 ├── slides.pdf               # Accompanying talk slides
-└── .env                     # Root environment variables
+└── .env.example             # Environment template (copy to .env)
 ```
 
 ---
@@ -210,8 +228,10 @@ collect-ingest-observe/
 | `POSTGRES_DB`        | `postgres`                  | Postgres database name              |
 | `POSTGRES_PORT`      | `5432`                      | Postgres port                       |
 | `PORT`               | Set per service `.env`      | HTTP port for each microservice     |
+| `USERS_URL`          | `http://localhost:9998/`    | Gateway → users service URL         |
+| `ORDERS_URL`         | `http://localhost:9997/`    | Gateway → orders service URL        |
 
-Root `.env` holds Postgres credentials shared by all services and the seed script. Each service directory also contains its own `.env` for `PORT`.
+Root `.env` holds Postgres credentials shared by all services and the seed script. Each service directory also contains its own `.env` for `PORT` (and, for the gateway, the downstream service URLs). All `.env` files are git-ignored; commit only the `.env.example` templates.
 
 ---
 

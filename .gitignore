@@ -1,6 +1,11 @@
 infra/pg
 infra/clickhouse
+.env
 .env.local
+**/.env
 .vscode
 node_modules
 .pnpm-lock.yaml
+.logs
+.services_pids
+.curl_random_pid

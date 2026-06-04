@@ -13,8 +13,8 @@ const app = express();
 const port = process.env.PORT;
 
 const SERVICES = {
-  users: "http://localhost:9998/",
-  orders: "http://localhost:9997/",
+  users: process.env.USERS_URL || "http://localhost:9998/",
+  orders: process.env.ORDERS_URL || "http://localhost:9997/",
 };
 
 // Custom metric counter for http requests
@@ -49,7 +49,7 @@ app.get("/orders", async (_, res) => {
   }
 });
 
-app.get("users/:userId/orders", async (req, res) => {
+app.get("/users/:userId/orders", async (req, res) => {
   try {
     const apiRes = await axios.get(SERVICES.orders + req.params.userId);
     res.send(apiRes.data);
