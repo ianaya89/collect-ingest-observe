@@ -1,7 +1,7 @@
 require("dotenv").config();
 
 const { Client } = require("pg");
-const faker = require("faker");
+const { faker } = require("@faker-js/faker");
 const newLoger = require("../lib/logger");
 const logger = newLoger.logger(process.env.OTEL_SERVICE_NAME);
 
@@ -37,9 +37,9 @@ async function seed() {
     logger.info("users table created");
 
     const userData = Array.from({ length: 10 }).map(() => [
-      faker.name.findName(),
+      faker.person.fullName(),
       faker.internet.email(),
-      faker.datatype.number({ min: 18, max: 80 }),
+      faker.number.int({ min: 18, max: 80 }),
     ]);
 
     const insertUserQuery = `
@@ -66,9 +66,9 @@ async function seed() {
     logger.info("orders table created");
 
     const orderData = Array.from({ length: 20 }).map(() => [
-      faker.datatype.uuid().slice(0, 20),
-      faker.commerce.price(10, 500),
-      faker.helpers.randomize(userIds),
+      faker.string.uuid().slice(0, 20),
+      faker.commerce.price({ min: 10, max: 500 }),
+      faker.helpers.arrayElement(userIds),
     ]);
 
     const insertOrderQuery = `
