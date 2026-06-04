@@ -1,6 +1,8 @@
 infra/pg
 infra/clickhouse
+.env
 .env.local
+**/.env
 .vscode
 node_modules
 .pnpm-lock.yaml
