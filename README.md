@@ -1,5 +1,7 @@
 # collect-ingest-observe
 
+[![CI](https://github.com/ianaya89/collect-ingest-observe/actions/workflows/ci.yml/badge.svg)](https://github.com/ianaya89/collect-ingest-observe/actions/workflows/ci.yml)
+
 A hands-on OpenTelemetry observability demo: instrument microservices, ship signals through a collector, store in ClickHouse, visualize in Grafana.
 
 The pipeline follows three stages:
