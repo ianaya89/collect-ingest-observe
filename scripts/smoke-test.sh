@@ -31,8 +31,8 @@ check /error 500
 echo "==> generating load"
 for i in $(seq 1 20); do curl -s -o /dev/null "$GW/users/$((i % 10 + 1))/orders"; done
 
-echo "==> waiting for collector batch flush"
-sleep 10
+echo "==> waiting for collector batch flush + metric export interval"
+sleep 20
 
 echo "==> asserting traces in ClickHouse"
 for svc in gateway-service user-service orders-service; do
