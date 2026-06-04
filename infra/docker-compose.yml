@@ -12,11 +12,11 @@ services:
       - "8888:8888" # Metrics endpoint
 
   clickhouse:
-    image: clickhouse/clickhouse-server:head
+    image: clickhouse/clickhouse-server:24.8
     container_name: clickhouse
     ports:
       - "9000:9000"
-      - "8143:8143"
+      - "8123:8123"
     ulimits:
       nofile:
         soft: 262144
@@ -40,6 +40,7 @@ services:
     environment:
       POSTGRES_USER: postgres
       POSTGRES_PASSWORD: postgres
+      POSTGRES_DB: postgres
     ports:
       - "5432:5432"
     volumes:
