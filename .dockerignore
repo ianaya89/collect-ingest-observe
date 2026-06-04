@@ -1,0 +1,11 @@
+node_modules
+.git
+.github
+.logs
+.services_pids
+.curl_random_pid
+infra/clickhouse
+infra/pg
+**/.env
+*.md
+slides.pdf

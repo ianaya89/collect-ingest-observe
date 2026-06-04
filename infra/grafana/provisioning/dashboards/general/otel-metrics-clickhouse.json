@@ -1,0 +1,350 @@
+{
+  "annotations": {
+    "list": [
+      {
+        "builtIn": 1,
+        "datasource": {
+          "type": "grafana",
+          "uid": "-- Grafana --"
+        },
+        "enable": true,
+        "hide": true,
+        "iconColor": "rgba(0, 211, 255, 1)",
+        "name": "Annotations & Alerts",
+        "target": {
+          "limit": 100,
+          "matchAny": false,
+          "tags": [],
+          "type": "dashboard"
+        },
+        "type": "dashboard"
+      }
+    ]
+  },
+  "editable": true,
+  "fiscalYearStartMonth": 0,
+  "graphTooltip": 0,
+  "schemaVersion": 38,
+  "tags": [
+    "otel",
+    "metrics"
+  ],
+  "templating": {
+    "list": []
+  },
+  "time": {
+    "from": "now-1h",
+    "to": "now"
+  },
+  "timepicker": {},
+  "timezone": "",
+  "title": "OTel Metrics — Gateway",
+  "uid": "otel-metrics-gateway",
+  "version": 1,
+  "panels": [
+    {
+      "datasource": {
+        "type": "grafana-clickhouse-datasource",
+        "uid": "clickhouse-traces"
+      },
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "palette-classic"
+          },
+          "custom": {
+            "axisCenteredZero": false,
+            "axisColorMode": "text",
+            "axisLabel": "",
+            "axisPlacement": "auto",
+            "barAlignment": 0,
+            "drawStyle": "bars",
+            "fillOpacity": 100,
+            "gradientMode": "none",
+            "hideFrom": {
+              "legend": false,
+              "tooltip": false,
+              "viz": false
+            },
+            "lineInterpolation": "linear",
+            "lineWidth": 0,
+            "pointSize": 5,
+            "scaleDistribution": {
+              "type": "linear"
+            },
+            "showPoints": "auto",
+            "spanNulls": false,
+            "stacking": {
+              "group": "A",
+              "mode": "normal"
+            },
+            "thresholdsStyle": {
+              "mode": "off"
+            }
+          },
+          "mappings": [],
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": null
+              },
+              {
+                "color": "red",
+                "value": 80
+              }
+            ]
+          }
+        },
+        "overrides": []
+      },
+      "gridPos": {
+        "h": 9,
+        "w": 16,
+        "x": 0,
+        "y": 0
+      },
+      "id": 1,
+      "maxDataPoints": 50,
+      "options": {
+        "legend": {
+          "calcs": [],
+          "displayMode": "list",
+          "placement": "bottom",
+          "showLegend": true
+        },
+        "tooltip": {
+          "mode": "single",
+          "sort": "none"
+        }
+      },
+      "targets": [
+        {
+          "builderOptions": {
+            "database": "default",
+            "fields": [],
+            "filters": [
+              {
+                "condition": "AND",
+                "filterType": "custom",
+                "key": "Timestamp",
+                "operator": "WITH IN DASHBOARD TIME RANGE",
+                "restrictToFields": [
+                  {
+                    "label": "Timestamp",
+                    "name": "Timestamp",
+                    "picklistValues": [],
+                    "type": "DateTime64(9)"
+                  }
+                ],
+                "type": "datetime"
+              }
+            ],
+            "groupBy": [
+              "ServiceName"
+            ],
+            "limit": 10000,
+            "metrics": [
+              {
+                "aggregation": "count",
+                "field": ""
+              }
+            ],
+            "mode": "trend",
+            "orderBy": [],
+            "table": "otel_traces",
+            "timeField": "Timestamp",
+            "timeFieldType": "DateTime64(9)"
+          },
+          "datasource": {
+            "type": "grafana-clickhouse-datasource",
+            "uid": "clickhouse-traces"
+          },
+          "format": 0,
+          "meta": {
+            "builderOptions": {
+              "database": "default",
+              "fields": [],
+              "filters": [
+                {
+                  "condition": "AND",
+                  "filterType": "custom",
+                  "key": "Timestamp",
+                  "operator": "WITH IN DASHBOARD TIME RANGE",
+                  "restrictToFields": [
+                    {
+                      "label": "Timestamp",
+                      "name": "Timestamp",
+                      "picklistValues": [],
+                      "type": "DateTime64(9)"
+                    }
+                  ],
+                  "type": "datetime"
+                }
+              ],
+              "groupBy": [
+                "ServiceName"
+              ],
+              "limit": 10000,
+              "metrics": [
+                {
+                  "aggregation": "count",
+                  "field": ""
+                }
+              ],
+              "mode": "trend",
+              "orderBy": [],
+              "table": "otel_traces",
+              "timeField": "Timestamp",
+              "timeFieldType": "DateTime64(9)"
+            }
+          },
+          "queryType": "sql",
+          "rawSql": "SELECT $__timeInterval(TimeUnix) as time, max(Value) as requests FROM otel_metrics_sum WHERE MetricName = 'gateway_request_count' AND $__timeFilter(TimeUnix) GROUP BY time ORDER BY time ASC",
+          "refId": "A",
+          "selectedFormat": 0
+        }
+      ],
+      "title": "Gateway request count (cumulative)",
+      "type": "timeseries",
+      "description": "OTel counter gateway_request_count, exported by the gateway service"
+    },
+    {
+      "datasource": {
+        "type": "grafana-clickhouse-datasource",
+        "uid": "clickhouse-traces"
+      },
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "thresholds"
+          },
+          "mappings": [],
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": null
+              }
+            ]
+          }
+        },
+        "overrides": []
+      },
+      "gridPos": {
+        "h": 9,
+        "w": 8,
+        "x": 16,
+        "y": 0
+      },
+      "id": 2,
+      "maxDataPoints": 50,
+      "options": {
+        "colorMode": "value",
+        "graphMode": "area",
+        "justifyMode": "auto",
+        "orientation": "auto",
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ],
+          "fields": "",
+          "values": false
+        },
+        "textMode": "auto"
+      },
+      "targets": [
+        {
+          "builderOptions": {
+            "database": "default",
+            "fields": [],
+            "filters": [
+              {
+                "condition": "AND",
+                "filterType": "custom",
+                "key": "Timestamp",
+                "operator": "WITH IN DASHBOARD TIME RANGE",
+                "restrictToFields": [
+                  {
+                    "label": "Timestamp",
+                    "name": "Timestamp",
+                    "picklistValues": [],
+                    "type": "DateTime64(9)"
+                  }
+                ],
+                "type": "datetime"
+              }
+            ],
+            "groupBy": [
+              "ServiceName"
+            ],
+            "limit": 10000,
+            "metrics": [
+              {
+                "aggregation": "count",
+                "field": ""
+              }
+            ],
+            "mode": "trend",
+            "orderBy": [],
+            "table": "otel_traces",
+            "timeField": "Timestamp",
+            "timeFieldType": "DateTime64(9)"
+          },
+          "datasource": {
+            "type": "grafana-clickhouse-datasource",
+            "uid": "clickhouse-traces"
+          },
+          "format": 0,
+          "meta": {
+            "builderOptions": {
+              "database": "default",
+              "fields": [],
+              "filters": [
+                {
+                  "condition": "AND",
+                  "filterType": "custom",
+                  "key": "Timestamp",
+                  "operator": "WITH IN DASHBOARD TIME RANGE",
+                  "restrictToFields": [
+                    {
+                      "label": "Timestamp",
+                      "name": "Timestamp",
+                      "picklistValues": [],
+                      "type": "DateTime64(9)"
+                    }
+                  ],
+                  "type": "datetime"
+                }
+              ],
+              "groupBy": [
+                "ServiceName"
+              ],
+              "limit": 10000,
+              "metrics": [
+                {
+                  "aggregation": "count",
+                  "field": ""
+                }
+              ],
+              "mode": "trend",
+              "orderBy": [],
+              "table": "otel_traces",
+              "timeField": "Timestamp",
+              "timeFieldType": "DateTime64(9)"
+            }
+          },
+          "queryType": "sql",
+          "rawSql": "SELECT max(Value) as requests FROM otel_metrics_sum WHERE MetricName = 'gateway_request_count'",
+          "refId": "A",
+          "selectedFormat": 0
+        }
+      ],
+      "title": "Total gateway requests",
+      "type": "stat",
+      "description": "Latest cumulative value of gateway_request_count"
+    }
+  ]
+}
