@@ -29,3 +29,22 @@ jobs:
 
       - name: Validate docker-compose
         run: docker compose -f infra/docker-compose.yml config -q
+
+  integration:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Start full stack
+        run: docker compose -f infra/docker-compose.yml up -d --build
+
+      - name: Smoke test
+        run: ./scripts/smoke-test.sh
+
+      - name: Dump logs on failure
+        if: failure()
+        run: docker compose -f infra/docker-compose.yml logs --tail 100
+
+      - name: Teardown
+        if: always()
+        run: docker compose -f infra/docker-compose.yml down -v

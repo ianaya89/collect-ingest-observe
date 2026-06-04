@@ -1,3 +1,16 @@
+x-app-base: &app-base
+  build:
+    context: ..
+    dockerfile: Dockerfile
+  image: collect-ingest-observe-app:local
+  restart: unless-stopped
+
+x-pg-env: &pg-env
+  POSTGRES_HOST: postgres
+  POSTGRES_USER: postgres
+  POSTGRES_PASSWORD: postgres
+  POSTGRES_DB: postgres
+
 services:
   otelcol:
     image: otel/opentelemetry-collector-contrib:0.74.0
@@ -62,3 +75,62 @@ services:
       interval: 5s
       timeout: 3s
       retries: 10
+
+  # One-shot: creates and seeds the Postgres tables, then exits
+  seed:
+    <<: *app-base
+    restart: "no"
+    command: ["node", "--require", "./lib/otel.js", "seed"]
+    environment:
+      <<: *pg-env
+      OTEL_SERVICE_NAME: seed-service
+      OTEL_COLLECTOR_URL: http://otelcol:4318/v1
+    depends_on:
+      postgres:
+        condition: service_healthy
+
+  users:
+    <<: *app-base
+    command: ["node", "--require", "./lib/otel.js", "src/users/app.js"]
+    environment:
+      <<: *pg-env
+      OTEL_SERVICE_NAME: user-service
+      OTEL_COLLECTOR_URL: http://otelcol:4318/v1
+      PORT: "9998"
+    depends_on:
+      otelcol:
+        condition: service_started
+      seed:
+        condition: service_completed_successfully
+
+  orders:
+    <<: *app-base
+    command: ["node", "--require", "./lib/otel.js", "src/orders/app.js"]
+    environment:
+      <<: *pg-env
+      OTEL_SERVICE_NAME: orders-service
+      OTEL_COLLECTOR_URL: http://otelcol:4318/v1
+      PORT: "9997"
+    depends_on:
+      otelcol:
+        condition: service_started
+      seed:
+        condition: service_completed_successfully
+
+  gateway:
+    <<: *app-base
+    command: ["node", "--require", "./lib/otel.js", "src/gateway/app.js"]
+    ports:
+      - "9999:9999"
+    environment:
+      <<: *pg-env
+      OTEL_SERVICE_NAME: gateway-service
+      OTEL_COLLECTOR_URL: http://otelcol:4318/v1
+      PORT: "9999"
+      USERS_URL: http://users:9998/
+      ORDERS_URL: http://orders:9997/
+    depends_on:
+      users:
+        condition: service_started
+      orders:
+        condition: service_started

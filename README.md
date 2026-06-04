@@ -75,7 +75,28 @@ A companion talk is included as [`slides.pdf`](./slides.pdf).
 
 ---
 
-## Quick Start
+## Quick Start (everything in containers)
+
+One command builds the service images and starts the whole pipeline — Postgres, the seeder (runs once), the three microservices, the OTel Collector, ClickHouse, and Grafana — wired together with health-gated startup ordering:
+
+```bash
+docker compose -f infra/docker-compose.yml up -d --build
+```
+
+Then generate load and open Grafana:
+
+```bash
+make run          # random traffic against the gateway (make stop to halt)
+open http://localhost:3000   # Grafana, admin / admin
+```
+
+Tear down with `docker compose -f infra/docker-compose.yml down` (add `-v` to drop the ClickHouse/Postgres volumes).
+
+---
+
+## Local Development (services on the host)
+
+Run the infrastructure in containers but the Node services on your machine — faster iteration and live logs.
 
 ### 1. Install dependencies
 
@@ -87,8 +108,6 @@ All service dependencies resolve from the root `node_modules`.
 
 ### 2. Set up environment files
 
-Copy the example files and adjust if needed (defaults work out of the box):
-
 ```bash
 cp .env.example .env
 cp src/gateway/.env.example src/gateway/.env
@@ -98,13 +117,11 @@ cp src/orders/.env.example src/orders/.env
 
 `.env` files are git-ignored — only the `.env.example` templates are committed.
 
-### 3. Start infrastructure
+### 3. Start infrastructure only
 
 ```bash
-docker compose -f infra/docker-compose.yml up -d
+docker compose -f infra/docker-compose.yml up -d clickhouse otelcol grafana postgres
 ```
-
-Starts ClickHouse, the OTel Collector, Grafana, and Postgres.
 
 ### 4. Seed the database
 
@@ -158,7 +175,22 @@ Navigate to [http://localhost:3000](http://localhost:3000).
 
 Default credentials: `admin` / `admin`.
 
-The **otel-logs-clickhouse** dashboard is pre-provisioned and ready to use.
+Two dashboards are pre-provisioned:
+
+- **Traces** — span counts, p99 latency, error rates, a trace list, and a span/trace detail view, plus correlated logs.
+- **OTel Metrics — Gateway** — the custom `gateway_request_count` counter (cumulative timeseries + total).
+
+---
+
+## Smoke Test
+
+With the full containerized stack running, verify the pipeline end to end — routes respond and traces + the gateway metric reach ClickHouse:
+
+```bash
+./scripts/smoke-test.sh
+```
+
+This is the same check the CI `integration` job runs against a freshly built stack.
 
 ---
 
@@ -206,13 +238,17 @@ collect-ingest-observe/
 │   ├── db.js                # Postgres pool
 │   └── logger.js            # Winston logger factory
 ├── infra/
-│   ├── docker-compose.yml
+│   ├── docker-compose.yml      # Full stack: services + infra
+│   ├── clickhouse-users.xml    # Opens the default CH user to the container network
 │   ├── otel/
-│   │   └── otelcol-config.yml   # Collector: receivers, processors, exporters
-│   └── grafana/                 # Provisioned datasource + dashboard
+│   │   └── otelcol-config.yml  # Collector: receivers, processors, exporters
+│   └── grafana/                # Provisioned datasource + dashboards (traces, metrics)
 ├── seed/
 │   └── index.js             # DB seeder (faker-generated users + orders)
-├── Makefile                 # Load generation (make run / make stop)
+├── scripts/
+│   └── smoke-test.sh        # End-to-end pipeline assertion (used by CI)
+├── Dockerfile               # Shared image for the three services + seeder
+├── Makefile                 # Load generation + host service runner
 ├── slides.pdf               # Accompanying talk slides
 └── .env.example             # Environment template (copy to .env)
 ```
@@ -225,6 +261,7 @@ collect-ingest-observe/
 |----------------------|-----------------------------|-------------------------------------|
 | `OTEL_COLLECTOR_URL` | `http://localhost:4318/v1`  | OTLP HTTP exporter base URL         |
 | `OTEL_SERVICE_NAME`  | Set per service at start    | Service name reported in telemetry  |
+| `POSTGRES_HOST`      | `localhost`                 | Postgres host (`postgres` in containers) |
 | `POSTGRES_USER`      | `postgres`                  | Postgres username                   |
 | `POSTGRES_PASSWORD`  | `postgres`                  | Postgres password                   |
 | `POSTGRES_DB`        | `postgres`                  | Postgres database name              |

@@ -6,6 +6,7 @@ const newLoger = require("../lib/logger");
 const logger = newLoger.logger(process.env.OTEL_SERVICE_NAME);
 
 const client = new Client({
+  host: process.env.POSTGRES_HOST || "localhost",
   user: process.env.POSTGRES_USER,
   password: process.env.POSTGRES_PASSWORD,
   database: process.env.POSTGRES_DB,
