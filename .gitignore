@@ -6,3 +6,6 @@ infra/clickhouse
 .vscode
 node_modules
 .pnpm-lock.yaml
+.logs
+.services_pids
+.curl_random_pid

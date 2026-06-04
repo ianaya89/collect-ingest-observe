@@ -114,18 +114,23 @@ Creates `users` and `orders` tables in Postgres and populates them with 10 users
 
 ### 5. Start the services
 
-Open three separate terminals:
+Start all three in the background with a single command (logs land in `.logs/<service>.log`):
 
 ```bash
-# Terminal 1 — gateway
-cd src/gateway && npm start
-
-# Terminal 2 — users
-cd src/users && npm start
-
-# Terminal 3 — orders
-cd src/orders && npm start
+make services
 ```
+
+Stop them with `make services-stop`.
+
+<details>
+<summary>Prefer separate terminals?</summary>
+
+```bash
+cd src/gateway && npm start   # terminal 1
+cd src/users && npm start     # terminal 2
+cd src/orders && npm start    # terminal 3
+```
+</details>
 
 ### 6. Generate load
 
